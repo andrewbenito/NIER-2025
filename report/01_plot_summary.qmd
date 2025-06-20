@@ -1,0 +1,188 @@
+---
+title: "Plot Summary"
+format: pdf
+author: "Andrew Benito"
+date: "`r format(Sys.Date(), '%B %d, %Y')`"
+---
+
+## Introduction
+
+Plot Summary for a cross-country analysis of labour productivity using the Conference Board's Total Economy Database. 
+
+Some of these plots were used in Benito and Young (2025), 'The UK productivity shortfall in an era of rising labour supply', _National Institute Economic Review_. 
+
+
+```{r setup}
+#| include: false
+knitr::opts_chunk$set(
+  echo = FALSE,
+  message = FALSE,
+  warning = FALSE,
+  error = FALSE
+)
+sysfonts::font_add_google("Roboto Condensed", "Roboto Condensed")
+```
+
+
+## Cross-country
+
+Cross-country  
+
+```{r}
+
+source(here::here('scripts', '01_create_data.R'))
+showtext_auto() # Automatically use system fonts
+```
+
+
+```{r}
+ggplot(df2019, aes(x = ISO, y = g19602019)) + 
+  geom_col() + 
+  geom_text_repel(aes(label = ISO), hjust=-0.5)  +
+  labs(title = "Cross-country analysis of GDP per capita and growth rates from 1960",
+       x = "GDP per capita, 1960 in USD 2019", 
+       y = "Growth rate, 1960-2019 (ann rate, %)")
+
+```
+
+```{r}
+
+ggplot(df2019, aes(x = gdppc1960, y = g19602019)) + 
+  geom_point() + geom_smooth(method = lm, se = TRUE) +
+  geom_text_repel(aes(label = ISO), hjust=-0.5)  +
+  labs(title = "Cross-country analysis of GDP per capita and growth rates from 1960",
+       x = "GDP per capita, 1960 in USD 2019", 
+       y = "Growth rate, 1960-2019 (ann rate, %)")
+  
+```
+
+
+```{r}
+
+ggplot(df3, aes(x=year)) +
+  geom_ribbon(aes(ymin=dlyhMin, ymax= dlyhMax),
+              alpha = 0.2,
+              linetype = 1,
+              fill = "red") + 
+  geom_line(data = subset(df3, ISO %in% c("GBR")), aes(y = `Output per Hour Worked growth`)) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "black") +
+  scale_x_continuous(
+    breaks = seq(min(df3$year, na.rm = TRUE), max(df3$year, na.rm = TRUE)+1, by = 10)
+  ) +
+  scale_color_jco() +
+  xlab("Year") + ylab("Growth in Output per Hour Worked, %pa") +
+  labs(title = "Labour Productivity Growth",
+       subtitle = "UK and advanced economies",
+    caption = "Source: Conference Board") + theme(plot.caption = element_text(hjust = 0))
+
+```
+
+
+```{r}
+
+ggplot(byISO, aes(x=`Population growth`, y = `Output per Employed Person growth`))+
+  geom_point() + geom_smooth(method = lm, se = TRUE) + 
+  geom_text_repel(aes(label = ISO), hjust=-0.5) + 
+  xlab("Population growth (avg annual rate, %)") +
+  ylab("Growth in Output per Person Employed (avg annual rate, %)")
+
+```
+
+```{r}
+
+byYear %>%
+  unnest(tidied) %>%
+  dplyr::filter(term=='dPop20y') %>%
+  mutate(conf.low_90 = estimate - 1.645*std.error,
+         conf.high_90 = estimate + 1.645*std.error) %>%
+  ggplot(aes(x=year, y = estimate)) +
+  geom_point(aes(x = year, y = estimate, color = "Estimate with 90% conf. interval")) +
+  geom_linerange(aes( x = year, 
+                      ymin=conf.low_90,
+                      ymax=conf.high_90),
+                 lwd = 1, color = "dodgerblue",
+                 show.legend = T) +
+  geom_hline(yintercept=0, linetype = "dashed") +
+  labs(title = "Coefficient on Population growth over time",
+       x = "Final year (20-year sample)", y= "Coefficient on Pop growth") +
+  theme(legend.title = element_blank(), legend.position = "bottom")
+  
+```
+
+```{r}
+plot_fig4 <- byYear %>%
+  unnest(tidied) %>%
+  filter(term == "ylinitial") %>%
+  mutate(
+    conf.low_90 = estimate - 1.645 * std.error,
+    conf.high_90 = estimate + 1.645 * std.error
+  ) %>%
+  ggplot(aes(x = year, y = estimate)) +
+  geom_point(color = "black") +
+  geom_linerange(
+    aes(ymin = conf.low_90, ymax = conf.high_90),
+    color = "dodgerblue",
+    linewidth = 1
+  ) +
+  labs(
+    x = "Final year (20-year sample)",
+    y = "Convergence estimate (%pa)",
+    title = NULL
+  ) +
+  theme_minimal() +
+  theme(
+    legend.title = element_blank(),
+    legend.position = "none"
+  )
+plot_fig4
+# Save the plot
+ggsave(
+  filename = here::here("figures", "Fig_4.png"),
+  plot = plot_fig4,
+  width = 5, height = 4, dpi = 300
+)
+
+
+# Coefficients on Pop Growth by Country
+byCountry %>%
+  unnest(tidied) %>%
+  dplyr::filter(term=='dPop20y') %>%
+  mutate(conf.low_90 = estimate - 1.645*std.error,
+         conf.high_90 = estimate + 1.645*std.error,
+         ISO = fct_reorder(ISO, estimate)) %>%
+  ggplot(aes(x=ISO, y = estimate)) +
+  geom_point(aes(x = ISO, y = estimate, color = "Estimate with 90% conf. interval")) +
+  geom_linerange(aes( x = ISO, 
+                      ymin=conf.low_90,
+                      ymax=conf.high_90),
+                 lwd = 1, color = "dodgerblue",
+                 show.legend = T) +
+  geom_hline(yintercept=0, linetype = "dashed") +
+  xlab("Country") + ylab("Coefficient on Pop growth") + 
+  theme(legend.title = element_blank(), legend.position = "bottom") 
+
+# Coefficients on yInitial by Country
+byCountry %>%
+  unnest(tidied) %>%
+  filter(term=='ylinitial') %>%
+  mutate(conf.low_90 = estimate - 1.645*std.error,
+         conf.high_90 = estimate + 1.645*std.error,
+         ISO = fct_reorder(ISO, estimate)) %>%
+  ggplot(aes(x=ISO, y = estimate)) +
+  geom_point(aes(x = ISO, y = estimate, color = "Estimate with 90% conf. interval")) +
+  geom_linerange(aes( x = ISO, 
+                      ymin=conf.low_90,
+                      ymax=conf.high_90),
+                 lwd = 1, color = "dodgerblue",
+                 show.legend = T) +
+  geom_hline(yintercept=0, linetype = "dashed") +
+  xlab("Country") + ylab("Coefficient on Initial Productivity") + 
+  theme(legend.title = element_blank(), legend.position = "bottom") 
+
+
+
+
+```
+
+
+
