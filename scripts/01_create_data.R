@@ -1,9 +1,9 @@
 # 01_create_data.R
 # Analysis of Conf Board cross-country Labour Productivity data
  
-
+# Packages ----
 rm(list=ls())
-x = c('tidyverse', 'readxl', 'broom', 'modelr', 
+x = c('tidyverse', 'readxl', 'broom', 'modelr', 'gt', 'gtExtras',
       'ggtext', 'ggrepel', 'ggsci', 'janitor', 'zoo', 'showtext')
 invisible(lapply(x, library, character.only = TRUE))
 
@@ -33,7 +33,8 @@ df2019 <- df1 %>%
          gdppc2000 = `Per Capita Income`[year==2000],
          g19602019 = 100*((`Per Capita Income`[year==2019] / `Per Capita Income`[year==1960])^(1/(2019-1960)) - 1),
          g20002019 = 100*((`Per Capita Income`[year==2019] / `Per Capita Income`[year==2000])^(1/(2019-2000)) - 1)) %>%
-  dplyr::filter(year==last(year)) 
+  dplyr::filter(year==last(year)) |> 
+  ungroup()
 
 # Data [df3] for Growth in Output per Hour Worked and Employed Person ----
 df3 <- df1 %>%
@@ -113,4 +114,3 @@ saveRDS(byISOTime, here::here('data', 'byISOTime.rds')) # by ISO country/decade
 saveRDS(byYear, here::here('data', 'byYear.rds')) # by Year regression (list columns)
 saveRDS(byCountry, here::here('data', 'byCountry.rds')) # by Country regression (list column)
 
-print("Conference Board Dataframes created and saved")

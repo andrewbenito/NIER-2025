@@ -1,8 +1,11 @@
 ---
-title: "Plot Summary"
-format: pdf
+title: "Labour Productivity: Some cross-country features"
+format: 
+   pdf:
+     mainfont: "Source Sans Pro"
 author: "Andrew Benito"
 date: "`r format(Sys.Date(), '%B %d, %Y')`"
+
 ---
 
 ## Introduction
@@ -23,10 +26,9 @@ knitr::opts_chunk$set(
 sysfonts::font_add_google("Roboto Condensed", "Roboto Condensed")
 ```
 
+## Cross-country tylised facts
 
-## Cross-country
-
-Cross-country  
+A cross-country summary of some of the key variables in the Conference Board's Total Economy Database, for 2019. 
 
 ```{r}
 
@@ -34,15 +36,50 @@ source(here::here('scripts', '01_create_data.R'))
 showtext_auto() # Automatically use system fonts
 ```
 
+```{r}
+df2019Table <- df2019 |> 
+  dplyr::select(COUNTRY, Employment, Population, `Output per Employed Person`, `GDP growth`) |> 
+  gt() |> 
+  gt_theme_guardian() |>
+  fmt_number(columns = where(is.numeric), decimals = 1) |>
+  tab_header(
+    title = md("**Economic Indicators by Country**"),
+    subtitle = "Employment, Population, and Growth Metrics for 2019"
+  ) |>
+  tab_source_note(
+    source_note = "Source: Conference Board Total Economy Database"
+  ) |>
+  cols_label(
+    COUNTRY = "Country",
+    Employment = "Employment (000s)",
+    Population = "Population (000s)", 
+    `Output per Employed Person` = "Output per Worker (USD)",
+    `GDP growth` = "GDP Growth (%)"
+  ) |>
+  cols_align(
+    align = "right",
+    columns = c(Employment, Population, `Output per Employed Person`, `GDP growth`)
+  ) |>
+  tab_options(
+    table.font.size = 12,
+    heading.title.font.size = 15,
+    heading.subtitle.font.size = 13,
+    column_labels.font.weight = "bold"
+  )
+
+df2019Table
+
+```
+
+A standard illustration of ('beta') compares the growth rate in GDP with log GDP per capita. A related plot is shown below. In a regression of the annual GDP growth rate on log GDP per capita in 1960 using these data, the coefficient on log GDP per capita is -1.18 (st.error = 0.134) indicating some convergence.  
 
 ```{r}
-ggplot(df2019, aes(x = ISO, y = g19602019)) + 
-  geom_col() + 
-  geom_text_repel(aes(label = ISO), hjust=-0.5)  +
-  labs(title = "Cross-country analysis of GDP per capita and growth rates from 1960",
-       x = "GDP per capita, 1960 in USD 2019", 
-       y = "Growth rate, 1960-2019 (ann rate, %)")
-
+df2019 <- df2019 |> 
+  mutate(lngdppc1960 = log(gdppc1960))
+mod1 <- lm(g19602019 ~ lngdppc1960, data = df2019)
+mod1.tidy <- broom::tidy(mod1)
+print(mod1.tidy)
+  
 ```
 
 ```{r}
@@ -56,6 +93,9 @@ ggplot(df2019, aes(x = gdppc1960, y = g19602019)) +
   
 ```
 
+##
+
+A trend decline in labour productivity growth sice 1960, highlighting the UK experience within that.
 
 ```{r}
 
@@ -77,6 +117,9 @@ ggplot(df3, aes(x=year)) +
 
 ```
 
+## Labour productivity growth and population growth
+
+A raw correlation between growth in output per employed person and population growth. Countries with higher population growth have tended, on average, to experience lower growth in output per employed person. 
 
 ```{r}
 
@@ -87,6 +130,9 @@ ggplot(byISO, aes(x=`Population growth`, y = `Output per Employed Person growth`
   ylab("Growth in Output per Person Employed (avg annual rate, %)")
 
 ```
+
+That association is considered a little more formally in the following rolling regression (see Benito and Young, 2025. It shows that, across the set of countries, the negative association between productivity and population growth applied up until the mid-1990s, but weakened significantly thereafter. 
+
 
 ```{r}
 
@@ -108,6 +154,13 @@ byYear %>%
   theme(legend.title = element_blank(), legend.position = "bottom")
   
 ```
+Has the association between productivity and population growth varied across countries? The following suggests quite significantly so. Over the full 1960-2019 period, the UK is one of the countries with a significantly inverse association between these two features. By contrast, the US stands out for having a positive association between productivity and population growth.
+
+That we found cross-country evidence that higher productivity growth countries tended to
+have higher population growth by the end of the period might have posed a puzzle for understanding UK
+experience. Our finding that the UK has in general been in a minority of countries with a more negative relation between its productivity growth and population growth may help account for some of this. 
+
+
 
 ```{r}
 plot_fig4 <- byYear %>%
@@ -179,10 +232,25 @@ byCountry %>%
   xlab("Country") + ylab("Coefficient on Initial Productivity") + 
   theme(legend.title = element_blank(), legend.position = "bottom") 
 
-
-
-
 ```
 
+## Convergence
+
+What of the UK’s estimated convergence speed? Our results summarised by the range of country-level
+coefficients indicate that the UK witnessed a more modest pace of convergence, estimated at
+0.90% p.a. (standard error = 0.14). This may also be a factor that has weighed on UK productivity
+growth. Our data do not realistically allow us to explore how these links evolved separately for each
+country and over time.
+
+## Conclusions
+
+
+Our cross-country evidence together with our assessment of UK-specific performance suggests:
+(i) Over time, and across countries in general, the tendency for population growth to weigh on
+productivity growth that was evident in the 1980s and 1990s has since weakened. (ii) Yet, the UK has
+had a stronger tendency than most advanced economies for population growth to go hand in hand with
+weaker productivity growth; (iii) a slower pace of cross-country convergence followed the financial crisis and may have slowed productivity growth; and (iv) slower convergence also applies in the UK, in a feature could have owed to impaired capital markets slowing adjustment of its capital stock to an increase in its labour force.    
+
+The natural explanation for these findings is that there is no general relationship between a country’s productivity and population growth, as would be consistent with long-run theory. But in the medium term, the relationship will depend on the causes and nature of population change. Countries at the technological frontier that have a high demand for labour that is met partly from highly-skilled workers from the rest of the world are likely to see faster productivity growth than countries that experience a positive labour supply shock that is accommodated by slow wage and productivity growth.
 
 

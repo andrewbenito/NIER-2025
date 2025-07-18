@@ -3,7 +3,7 @@
 
 
 # Settings: Display ----
-theme_set(theme_bw(base_size = 15, base_family = "Roboto Condensed"))
+theme_set(theme_bw(base_size = 13, base_family = "Roboto Condensed"))
 theme_bw <- theme_update(panel.background = element_rect(fill = "white"),
                          panel.grid.major = element_line(linewidth = .5),
                          panel.grid.minor = element_blank(),
