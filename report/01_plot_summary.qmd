@@ -1,11 +1,11 @@
 ---
-title: "Labour Productivity: Some cross-country features"
+title: "Labour Productivity: \\linebreak
+  Some cross-country features"
 format: 
-   pdf:
-     mainfont: "Source Sans Pro"
+    pdf:
+      mainfont: "Source Sans Pro"
 author: "Andrew Benito"
 date: "`r format(Sys.Date(), '%B %d, %Y')`"
-
 ---
 
 ## Introduction
