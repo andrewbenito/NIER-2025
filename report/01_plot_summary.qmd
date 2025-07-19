@@ -76,8 +76,10 @@ A standard illustration of ('beta') compares the growth rate in GDP with log GDP
 ```{r}
 df2019 <- df2019 |> 
   mutate(lngdppc1960 = log(gdppc1960))
-mod1 <- lm(g19602019 ~ lngdppc1960, data = df2019)
+mod1 <- lm(g19602019 ~ lngdppc1960, 
+           data = df2019)
 mod1.tidy <- broom::tidy(mod1)
+print("Regression of GDP growth on log GDP per capita in 1960")
 print(mod1.tidy)
   
 ```
@@ -126,8 +128,10 @@ A raw correlation between growth in output per employed person and population gr
 ggplot(byISO, aes(x=`Population growth`, y = `Output per Employed Person growth`))+
   geom_point() + geom_smooth(method = lm, se = TRUE) + 
   geom_text_repel(aes(label = ISO), hjust=-0.5) + 
-  xlab("Population growth (avg annual rate, %)") +
-  ylab("Growth in Output per Person Employed (avg annual rate, %)")
+  labs(title = "population growth and productivity growth, cross-country",
+       caption = "Source: Conference Board Total Economy Database",
+       x = "Population growth (avg annual rate, %)",
+       y = "Growth in Output per Employed Person (avg annual rate, %)") 
 
 ```
 
@@ -180,7 +184,7 @@ plot_fig4 <- byYear %>%
   labs(
     x = "Final year (20-year sample)",
     y = "Convergence estimate (%pa)",
-    title = NULL
+    title = "Estimate for average pace of convergence"
   ) +
   theme_minimal() +
   theme(
@@ -211,8 +215,12 @@ byCountry %>%
                  lwd = 1, color = "dodgerblue",
                  show.legend = T) +
   geom_hline(yintercept=0, linetype = "dashed") +
-  xlab("Country") + ylab("Coefficient on Pop growth") + 
-  theme(legend.title = element_blank(), legend.position = "bottom") 
+  labs(title = "Coefficient on Population growth by Country",
+       subtitle = "Average annual rate of population growth over 20 years",
+       caption = "Source: Conference Board Total Economy Database",
+       x = "Country", y = "Coefficient on Population growth") +
+  theme(legend.title = element_blank(), legend.position = "bottom") +
+  coord_flip()
 
 # Coefficients on yInitial by Country
 byCountry %>%
@@ -230,7 +238,8 @@ byCountry %>%
                  show.legend = T) +
   geom_hline(yintercept=0, linetype = "dashed") +
   xlab("Country") + ylab("Coefficient on Initial Productivity") + 
-  theme(legend.title = element_blank(), legend.position = "bottom") 
+  theme(legend.title = element_blank(), legend.position = "bottom") +
+  coord_flip()
 
 ```
 
