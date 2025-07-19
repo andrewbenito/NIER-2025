@@ -10,7 +10,7 @@ date: "`r format(Sys.Date(), '%B %d, %Y')`"
 
 ## Introduction
 
-Plot Summary for a cross-country analysis of labour productivity using the Conference Board's Total Economy Database. 
+Some simple plots for a cross-country analysis of labour productivity using the Conference Board's Total Economy Database. 
 
 Some of these plots were used in Benito and Young (2025), 'The UK productivity shortfall in an era of rising labour supply', _National Institute Economic Review_. 
 
