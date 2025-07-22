@@ -84,7 +84,6 @@ df2019Table
 
 A standard illustration of ('beta') convergence compares the growth rate in GDP with (log) GDP per capita in an earlier period. In a regression of the annual GDP growth rate on log GDP per capita in 1960 using these data, the coefficient on log GDP per capita is -1.18 (st.error = 0.134) indicating some convergence, at an annual rate of 1.2% pa on this measure.  
 
-A related plot is shown below. 
 
 ```{r}
 df2019 <- df2019 |>
@@ -95,6 +94,8 @@ print("Regression of GDP growth on log GDP per capita in 1960")
 print(mod1.tidy)
 
 ```
+A related plot to that regression result is shown below. 
+
 
 ```{r}
 
@@ -178,10 +179,10 @@ $$\Delta log(Y/L)_{i,t} = \alpha_{0,t} + \alpha_{1,t}log(Y/L)_{i0} + \alpha_{2,t
 
 where ‘i’ indexes countries, ‘i’ = 1, 2…, 25, and ‘t’ indexes years, t = 1980, 1981…, 2019. We exploit this variation in 40 years of data on labour productivity growth across 25 countries
 
-That association is considered a little more formally in the following rolling regression (see Benito and Young, 2025. A first result is to show that, across the set of countries, the negative association between productivity and population growth applied up until the mid-1990s, but weakened significantly thereafter. 
+That association is considered a little more formally in the following rolling regression (see Benito and Young, 2025). A first result is to show that, across the set of countries, the negative association between productivity and population growth applied up until the mid-1990s, but weakened significantly thereafter.   
+
 
 ```{r}
-
 byYear %>%
   unnest(tidied) %>%
   dplyr::filter(term=='dPop20y') %>%
@@ -198,8 +199,10 @@ byYear %>%
   labs(title = "Coefficient on Population growth over time",
        x = "Final year (20-year sample)", y= "Coefficient on Pop growth") +
   theme(legend.title = element_blank(), legend.position = "bottom")
-  
+
+
 ```
+
 Has the association between productivity and population growth varied across countries? The following suggests quite significantly so. Over the full 1960-2019 period, the UK is one of the countries with a significantly inverse association between these two features. By contrast, the US stands out for having a positive association between productivity and population growth.
 
 That we find cross-country evidence that higher productivity growth countries tended to
@@ -238,11 +241,13 @@ ggsave(
   plot = plot_fig4,
   width = 5, height = 4, dpi = 300
 )
-
+```
 
 ### varying by country
 What of the UK’s estimated convergence speed? Our results summarised by the range of country-level coefficients indicate that the UK witnessed a more modest pace of convergence, estimated at 0.90% p.a. (standard error = 0.14). This may also be a factor that has weighed on UK productivity growth. Our data do not realistically allow us to explore how these links evolved separately for each country and over time.
 
+
+```{r}
 # Coefficients on Pop Growth by Country
 byCountry %>%
   unnest(tidied) %>%
@@ -265,6 +270,9 @@ byCountry %>%
   theme(legend.title = element_blank(), legend.position = "bottom") +
   coord_flip()
 
+```
+
+```{r}
 # Coefficients on yInitial by Country
 byCountry %>%
   unnest(tidied) %>%
@@ -292,10 +300,7 @@ byCountry %>%
 
 Our cross-country evidence together with our assessment of UK-specific performance suggests:
 (i) Over time, and across countries in general, the tendency for population growth to weigh on
-productivity growth that was evident in the 1980s and 1990s has since weakened. (ii) Yet, the UK has
-had a stronger tendency than most advanced economies for population growth to go hand in hand with
-weaker productivity growth; (iii) a slower pace of cross-country convergence followed the financial crisis and may have slowed productivity growth; and (iv) slower convergence also applies in the UK, in a feature could have owed to impaired capital markets slowing adjustment of its capital stock to an increase in its labour force.    
+productivity growth that was evident in the 1980s and 1990s has since weakened. (ii) Yet, the UK has had a stronger tendency than most advanced economies for population growth to go hand in hand with weaker productivity growth; (iii) a slower pace of cross-country convergence followed the financial crisis and may have slowed productivity growth; and (iv) slower convergence also applies in the UK, in a feature could have owed to impaired capital markets slowing adjustment of its capital stock to an increase in its labour force.    
 
 The natural explanation for these findings is that there is no general relationship between a country’s productivity and population growth, as would be consistent with long-run theory. But in the medium term, the relationship will depend on the causes and nature of population change. Countries at the technological frontier that have a high demand for labour that is met partly from highly-skilled workers from the rest of the world are likely to see faster productivity growth than countries that experience a positive labour supply shock that is accommodated by slow wage and productivity growth.
-
 
