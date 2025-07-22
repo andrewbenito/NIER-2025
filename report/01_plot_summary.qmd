@@ -26,7 +26,7 @@ knitr::opts_chunk$set(
 sysfonts::font_add_google("Roboto Condensed", "Roboto Condensed")
 ```
 
-## Cross-country stylised facts
+## Cross-country features
 
 A cross-country summary of some of the key variables in the Conference Board's Total Economy Database, for 2019. 
 
@@ -161,15 +161,16 @@ ggplot(
   geom_smooth(method = lm, se = TRUE) +
   geom_text_repel(aes(label = ISO), hjust = -0.5) +
   labs(
-    title = "population growth and productivity growth, cross-country",
+    title = "Population and productivity growth, cross-country",
     caption = "Source: Conference Board Total Economy Database",
-    x = "Population growth (avg annual rate, %)",
+    x = "Population growth (avg ann rate, %)",
     y = "Growth in Output per Employed Person (avg annual rate, %)"
   )
 
 ```
 
 ## Some added empirics
+### varying over time
 
 We exploit the cross-country variation in the data by regressing country-level average productivity growth (in a 20-year window) on its population growth and the initial level of productivity which allows for convergence effects. The higher the initial level of labour productivity (20-years earlier), the weaker should be expected productivity growth. This involves estimating:
 
@@ -224,9 +225,8 @@ plot_fig4 <- byYear %>%
   labs(
     x = "Final year (20-year sample)",
     y = "Convergence estimate (%pa)",
-    title = "Estimate for average pace of convergence"
+    title = "Coefficient for rate of convergence"
   ) +
-  theme_minimal() +
   theme(
     legend.title = element_blank(),
     legend.position = "none"
@@ -239,6 +239,9 @@ ggsave(
   width = 5, height = 4, dpi = 300
 )
 
+
+### varying by country
+What of the UK’s estimated convergence speed? Our results summarised by the range of country-level coefficients indicate that the UK witnessed a more modest pace of convergence, estimated at 0.90% p.a. (standard error = 0.14). This may also be a factor that has weighed on UK productivity growth. Our data do not realistically allow us to explore how these links evolved separately for each country and over time.
 
 # Coefficients on Pop Growth by Country
 byCountry %>%
@@ -283,13 +286,6 @@ byCountry %>%
 
 ```
 
-## Convergence
-
-What of the UK’s estimated convergence speed? Our results summarised by the range of country-level
-coefficients indicate that the UK witnessed a more modest pace of convergence, estimated at
-0.90% p.a. (standard error = 0.14). This may also be a factor that has weighed on UK productivity
-growth. Our data do not realistically allow us to explore how these links evolved separately for each
-country and over time.
 
 ## Conclusions
 
