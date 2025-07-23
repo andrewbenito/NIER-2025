@@ -76,7 +76,15 @@ clean_ted_data <- function(file_path) {
     arrange(country, year) |>
     select(-contains("alternative")) |>
     mutate(Europe = country %in% europe) |>
-    mutate(across(everything(), safe_numeric))
+    mutate(across(everything(), safe_numeric)) |>
+    mutate(across(
+      everything(),
+      ~ if (is.character(.x) && any(str_detect(.x, "%"), na.rm = TRUE)) {
+        as.numeric(str_remove(.x, "%"))
+      } else {
+        .x
+      }
+    ))
 
   return(df_clean)
 }
