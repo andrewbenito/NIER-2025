@@ -74,5 +74,6 @@ europe = sort(c(
 df1 <- clean_ted_data(tseries.file1)
 df2 <- clean_ted_data(tseries.file2)
 
+# save data
 saveRDS(df1, "data/df1.rds")
 saveRDS(df2, "data/df2.rds")
