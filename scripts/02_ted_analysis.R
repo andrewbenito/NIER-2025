@@ -13,8 +13,8 @@
 # create data ['dat'<tbl_df>]
 source(here::here('scripts', '01x_create_data_latest_ted.R'))
 
-# Options?
-this.year <- 2025
+# Options
+opt.year <- 2025
 
 # Convergence in Europe and Globally of Productivity from 2000
 
@@ -53,23 +53,223 @@ dat <- dat %>%
   ) |>
   ungroup()
 
-panel_data <- panel_data %>%
-  group_by(country) %>%
-  mutate(
-    gdp_per_hour_log_change_1980_2025 = log(gdp_per_hour[year == 2025]) -
-      log(gdp_per_hour[year == 1980])
-  ) %>%
-  ungroup()
+#===================
 
+#  PLOTS
 
-# 1: From 1980
-ggplot(df2019, aes(x = gdppc1960, y = g19602019)) +
+#===================
+plot_data <- dat |> filter(Europe.x == 1 & year == opt.year)
+# 1: Convergence plot: Europe, 2000-2025
+avg_x <- mean(plot_data$labor_productivity_per_hour_worked_2000, na.rm = TRUE)
+avg_y <- mean(plot_data$labor_productivity_change_2000_2025, na.rm = TRUE)
+
+# Get plot limits to position labels
+x_range <- range(
+  plot_data$labor_productivity_per_hour_worked_2000,
+  na.rm = TRUE
+)
+y_range <- range(plot_data$labor_productivity_change_2000_2025, na.rm = TRUE)
+
+# PLOT
+ted.plot_2000_2025 <- dat |>
+  filter(Europe.x == 1 & year == opt.year) |>
+  ggplot(aes(
+    x = labor_productivity_per_hour_worked_2000,
+    y = labor_productivity_change_2000_2025
+  )) +
   geom_point() +
+  # avg lines
+  geom_hline(
+    aes(yintercept = mean(labor_productivity_change_2000_2025, na.rm = TRUE)),
+    color = "red",
+    linetype = "dashed",
+    alpha = 0.7
+  ) +
+  geom_vline(
+    aes(
+      xintercept = mean(labor_productivity_per_hour_worked_2000, na.rm = TRUE)
+    ),
+    color = "red",
+    linetype = "dashed",
+    alpha = 0.7
+  ) +
   geom_smooth(method = lm, se = TRUE) +
-  geom_text_repel(aes(label = ISO), hjust = -0.5) +
-  xlab("GDP per capita, 1960") +
-  ylab("Growth rate, 1960-2019 (annual rate, %)")
-ggsave(here::here('figures', "Fig_1a.png"), width = 5, height = 4, dpi = 300)
+  geom_text_repel(aes(label = country), hjust = -0.5) +
+  # Add quadrant labels
+  annotate(
+    "text",
+    x = avg_x + (x_range[2] - avg_x) * 0.9,
+    y = avg_y + (y_range[2] - avg_y) * 0.9,
+    label = "Steaming ahead",
+    hjust = 0.5,
+    vjust = 0.5,
+    size = 3.5,
+    color = "darkblue",
+    fontface = "bold"
+  ) +
+  annotate(
+    "text",
+    x = avg_x - (avg_x - x_range[1]) * 0.9,
+    y = avg_y + (y_range[2] - avg_y) * 0.9,
+    label = "Catching up",
+    hjust = 0.5,
+    vjust = 0.5,
+    size = 3.5,
+    color = "darkblue",
+    fontface = "bold"
+  ) +
+  annotate(
+    "text",
+    x = avg_x - (avg_x - x_range[1]) * 0.9,
+    y = avg_y - (avg_y - y_range[1]) * 0.9,
+    label = "Falling behind",
+    hjust = 0.5,
+    vjust = 0.5,
+    size = 3.5,
+    color = "darkblue",
+    fontface = "bold"
+  ) +
+  annotate(
+    "text",
+    x = avg_x + (x_range[2] - avg_x) * 0.9,
+    y = avg_y - (avg_y - y_range[1]) * 0.9,
+    label = "Losing ground",
+    hjust = 0.5,
+    vjust = 0.5,
+    size = 3.5,
+    color = "darkblue",
+    fontface = "bold"
+  ) +
+  labs(
+    title = "European Productivity Convergence",
+    subtitle = "Cumulative growth in labour productivity and initial value",
+    caption = "Source: The Conference Board, Total Economy Database",
+    x = "Output per hour worked, 2000",
+    y = "Growth in labour productivity, 2000-2025, %"
+  )
+ted.plot_2000_2025
+ggsave(
+  here::here('figures', "ted.plot_2000_2025.png"),
+  width = 5,
+  height = 4,
+  dpi = 300
+)
+
+# GLOBAL CONVERGENCE
+plot_data <- dat |>
+  filter(
+    year == opt.year & country != "emerging_markets_and_developing_economies"
+  )
+# 1: Convergence plot: Global, 2000-2025
+avg_x <- mean(plot_data$labor_productivity_per_hour_worked_2000, na.rm = TRUE)
+avg_y <- mean(plot_data$labor_productivity_change_2000_2025, na.rm = TRUE)
+
+# Get plot limits to position labels
+x_range <- range(
+  plot_data$labor_productivity_per_hour_worked_2000,
+  na.rm = TRUE
+)
+y_range <- range(plot_data$labor_productivity_change_2000_2025, na.rm = TRUE)
+
+# PLOT - Global
+ted.global.plot_2000_2025 <- dat |>
+  filter(year == opt.year) |>
+  ggplot(aes(
+    x = labor_productivity_per_hour_worked_2000,
+    y = labor_productivity_change_2000_2025,
+    color = factor(Europe.x)
+  )) +
+  geom_point() +
+  # avg lines
+  geom_hline(
+    aes(yintercept = mean(labor_productivity_change_2000_2025, na.rm = TRUE)),
+    color = "red",
+    linetype = "dashed",
+    alpha = 0.7
+  ) +
+  geom_vline(
+    aes(
+      xintercept = mean(labor_productivity_per_hour_worked_2000, na.rm = TRUE)
+    ),
+    color = "red",
+    linetype = "dashed",
+    alpha = 0.7
+  ) +
+  geom_smooth(method = lm, se = TRUE) +
+  geom_text_repel(aes(label = country), hjust = -0.5) +
+  # Add quadrant labels
+  annotate(
+    "text",
+    x = avg_x + (x_range[2] - avg_x) * 0.9,
+    y = avg_y + (y_range[2] - avg_y) * 0.9,
+    label = "Steaming ahead",
+    hjust = 0.5,
+    vjust = 0.5,
+    size = 3.5,
+    color = "darkblue",
+    fontface = "bold"
+  ) +
+  annotate(
+    "text",
+    x = avg_x - (avg_x - x_range[1]) * 0.9,
+    y = avg_y + (y_range[2] - avg_y) * 0.9,
+    label = "Catching up",
+    hjust = 0.5,
+    vjust = 0.5,
+    size = 3.5,
+    color = "darkblue",
+    fontface = "bold"
+  ) +
+  annotate(
+    "text",
+    x = avg_x - (avg_x - x_range[1]) * 0.9,
+    y = avg_y - (avg_y - y_range[1]) * 0.9,
+    label = "Falling behind",
+    hjust = 0.5,
+    vjust = 0.5,
+    size = 3.5,
+    color = "darkblue",
+    fontface = "bold"
+  ) +
+  annotate(
+    "text",
+    x = avg_x + (x_range[2] - avg_x) * 0.9,
+    y = avg_y - (avg_y - y_range[1]) * 0.9,
+    label = "Losing ground",
+    hjust = 0.5,
+    vjust = 0.5,
+    size = 3.5,
+    color = "darkblue",
+    fontface = "bold"
+  ) +
+  scale_color_manual(
+    values = c("0" = "Gray", "1" = "blue"),
+    labels = c("0" = "Ex-Europe", "1" = "Europe"),
+    name = ""
+  ) +
+  labs(
+    title = "Global Productivity Convergence",
+    subtitle = "Cumulative growth in labour productivity and initial value",
+    caption = "Source: The Conference Board, Total Economy Database",
+    x = "Output per hour worked, 2000",
+    y = "Growth in labour productivity, 2000-2025, %"
+  )
+ted.global.plot_2000_2025
+ggsave(
+  here::here('figures', "ted.global.plot_2000_2025.png"),
+  width = 5,
+  height = 4,
+  dpi = 300
+)
+
+#=================================
+
+# Contributions / Decompositions
+
+#=================================
+# Decomposition 2010-2025
+
+# Productivity growth and Population Growth
 
 # 1b: From 2000
 ggplot(df2019, aes(x = gdppc2000, y = g20002019)) +
