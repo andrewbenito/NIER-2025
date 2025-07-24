@@ -18,7 +18,7 @@ opt.year <- 2025
 
 # Convergence in Europe and Globally of Productivity from 2000
 
-# Define 
+# Define
 dat <- dat %>%
   group_by(country) %>%
   mutate(
@@ -55,20 +55,40 @@ dat <- dat %>%
 
 # Data for Decompositions Analysis of GDP growth
 # Period: 2010-2025
-decompositions <- dat |> 
-  group_by(country) |> 
-  mutate(
-    real_gdp_2010_2025 = real_gdp(year==2025) - real_gdp[year==2010]) |> 
-  mutate(
-    gdp_contr_labor_quant_sum_2010_2025 = sum(contribution_of_labor_quantity_to_real_gdp_growth[year>=2010 & year<=2025],
-    gdp_contr_labor_qual_sum_2010_2025 = sum(contribution_of_labor_quality_to_real_gdp_growth[year>=2010 & year<=2025],
-    gdp_contr_cap_ict_sum_2010_2025 = sum(contribution_of_capital_services_provided_by_ict_assets_to_real_gdp_growth[year>=2010 & year<=2025],
-    gdp_contr_cap_nonict_sum_2010_2025 = sum(contribution_of_capital_services_provided_by_non_ict_assets_to_real_gdp_growth[year>=2010 & year<=2025],      
-    gdp_growth_sum_2010_2025 = sum(growth_in_real_gdp.x[year>=2010 & year<=2025])
-  )
-  
-  
 
+decomp <- dat %>%
+  group_by(country) %>%
+  mutate(
+    gdp_contr_labor_quant_sum_2010_2025 = sum(
+      contribution_of_labor_quantity_to_real_gdp_growth[
+        year >= 2010 & year <= 2025
+      ],
+      na.rm = TRUE
+    ),
+    gdp_contr_labor_qual_sum_2010_2025 = sum(
+      contribution_of_labor_quality_to_real_gdp_growth[
+        year >= 2010 & year <= 2025
+      ],
+      na.rm = TRUE
+    ),
+    gdp_contr_cap_ict_sum_2010_2025 = sum(
+      contribution_of_capital_services_provided_by_ict_assets_to_real_gdp_growth[
+        year >= 2010 & year <= 2025
+      ],
+      na.rm = TRUE
+    ),
+    gdp_contr_cap_nonict_sum_2010_2025 = sum(
+      contribution_of_capital_services_provided_by_non_ict_assets_to_real_gdp_growth[
+        year >= 2010 & year <= 2025
+      ],
+      na.rm = TRUE
+    ),
+    gdp_growth_sum_2010_2025 = sum(
+      growth_in_real_gdp.x[year >= 2010 & year <= 2025],
+      na.rm = TRUE
+    )
+  ) %>%
+  ungroup()
 
 
 #===================
@@ -287,7 +307,6 @@ ggsave(
 #=================================
 # Decomposition 2010-2025
 
-
 dat$contribution_of_labor_quantity_to_real_gdp_growth
 dat$contribution_of_labor_quality_to_real_gdp_growth
 dat$contribution_of_total_capital_services_to_real_gdp_growth
@@ -295,7 +314,6 @@ dat$contribution_of_capital_services_provided_by_ict_assets_to_real_gdp_growth
 dat$contribution_of_capital_services_provided_by_non_ict_assets_to_real_gdp_growth
 
 dat$real_gdp
-
 
 
 # Productivity growth and Population Growth
