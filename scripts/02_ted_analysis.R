@@ -158,7 +158,7 @@ ggsave(
 # GLOBAL CONVERGENCE
 plot_data <- dat |>
   filter(
-    year == opt.year & country != "emerging_markets_and_developing_economies"
+    year == opt.year & grouped_country != 1
   )
 # 1: Convergence plot: Global, 2000-2025
 avg_x <- mean(plot_data$labor_productivity_per_hour_worked_2000, na.rm = TRUE)

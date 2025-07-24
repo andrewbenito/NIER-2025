@@ -75,7 +75,10 @@ clean_ted_data <- function(file_path) {
     pivot_wider(names_from = variable, values_from = value) |>
     arrange(country, year) |>
     select(-contains("alternative")) |>
-    mutate(Europe = country %in% europe) |>
+    mutate(
+      Europe = country %in% europe,
+      grouped_country = country %in% groups
+    ) |>
     mutate(across(everything(), safe_numeric)) |>
     mutate(across(
       everything(),

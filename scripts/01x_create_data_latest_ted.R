@@ -35,7 +35,7 @@ tseries.file1 <- here::here(
 )
 tseries.file2 <- here::here('data/raw', "TED_growth_accounting_tfp.xlsx")
 
-# Define Europe
+# Define Europe and Country Groups
 europe = sort(c(
   "poland",
   "romania",
@@ -72,6 +72,18 @@ europe = sort(c(
   "netherlands",
   "luxembourg"
 ))
+
+groups <- c(
+  "mature_economies",
+  "middle_east_north_africa",
+  "other_developing_asian_economies",
+  "other_mature_economies",
+  "russia_central_asia_and_southeast_europe",
+  "russian_federation",
+  "sub_saharan_africa",
+  "emerging_markets_and_developing_economies"
+)
+
 
 # Clean TED data
 df1 <- clean_ted_data(tseries.file1)
