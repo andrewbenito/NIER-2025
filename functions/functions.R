@@ -86,5 +86,7 @@ clean_ted_data <- function(file_path) {
       }
     ))
 
+  arrange(df_clean, country, year)
+
   return(df_clean)
 }

@@ -10,10 +10,59 @@
 # 3. Population growth and Labour Productivity growth
 # 4. Coefficients on Population growth and Convergence estimates
 
-# create data
+# create data ['dat'<tbl_df>]
 source(here::here('scripts', '01x_create_data_latest_ted.R'))
 
-# 1: From 1960
+# Options?
+this.year <- 2025
+
+# Convergence in Europe and Globally of Productivity from 2000
+
+# Define the years you want
+dat <- dat %>%
+  group_by(country) %>%
+  mutate(
+    # initial level of labour productivity
+    labor_productivity_per_hour_worked_1980 = labor_productivity_per_hour_worked[
+      year == 1980
+    ],
+    labor_productivity_per_hour_worked_2000 = labor_productivity_per_hour_worked[
+      year == 2000
+    ],
+    labor_productivity_per_hour_worked_2010 = labor_productivity_per_hour_worked[
+      year == 2010
+    ],
+    labor_productivity_per_hour_worked_2019 = labor_productivity_per_hour_worked[
+      year == 2019
+    ]
+  ) |>
+  mutate(
+    # cumulative growth in productivity
+    labor_productivity_change_1980_2025 = log(labor_productivity_per_hour_worked[
+      year == 2025
+    ]) -
+      log(labor_productivity_per_hour_worked[year == 2000]),
+    labor_productivity_change_2010_2025 = log(labor_productivity_per_hour_worked[
+      year == 2025
+    ]) -
+      log(labor_productivity_per_hour_worked[year == 2010]),
+    labor_productivity_change_2000_2025 = log(labor_productivity_per_hour_worked[
+      year == 2025
+    ]) -
+      log(labor_productivity_per_hour_worked[year == 2000])
+  ) |>
+  ungroup()
+
+panel_data <- panel_data %>%
+  group_by(country) %>%
+  mutate(
+    gdp_per_hour_log_change_1980_2025 = log(gdp_per_hour[year == 2025]) -
+      log(gdp_per_hour[year == 1980])
+  ) %>%
+  ungroup()
+
+
+# 1: From 1980
 ggplot(df2019, aes(x = gdppc1960, y = g19602019)) +
   geom_point() +
   geom_smooth(method = lm, se = TRUE) +

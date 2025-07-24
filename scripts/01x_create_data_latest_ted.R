@@ -21,6 +21,9 @@ x = c(
 )
 invisible(lapply(x, library, character.only = TRUE))
 
+# source functions
+source(here::here('functions', 'functions.R'))
+
 # 1. Plot Settings and Data cleaning functions ----
 #source(here::here('functions', 'functions.R'))
 showtext_auto() # Automatically use system fonts
@@ -73,6 +76,8 @@ europe = sort(c(
 # Clean TED data
 df1 <- clean_ted_data(tseries.file1)
 df2 <- clean_ted_data(tseries.file2)
+
+dat <- left_join(df1, df2, by = c("country", "year"))
 
 # save data
 saveRDS(df1, "data/df1.rds")
