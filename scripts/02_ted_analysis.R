@@ -83,6 +83,10 @@ decomp <- dat %>%
       ],
       na.rm = TRUE
     ),
+    gdp_contr_tfp_sum_2010_2025 = sum(
+      growth_of_total_factor_productivity[year >= 2010 & year <= 2025],
+      na.rm = TRUE
+    ),
     gdp_growth_sum_2010_2025 = sum(
       growth_in_real_gdp.x[year >= 2010 & year <= 2025],
       na.rm = TRUE
@@ -90,6 +94,24 @@ decomp <- dat %>%
   ) %>%
   ungroup()
 
+decomp_plot <- decomp |>
+  filter(Europe.x == 1) |>
+  group_by(country) |>
+  slice(1) |>
+  ungroup() |>
+  select(
+    country,
+    `Labour quality` = gdp_contr_labor_qual_sum_2010_2025,
+    `Labour quantity` = gdp_contr_labor_quant_sum_2010_2025,
+    `ICT Capital` = gdp_contr_cap_ict_sum_2010_2025,
+    `Non-ICT Capital` = gdp_contr_cap_nonict_sum_2010_2025,
+    `TFP` = gdp_contr_tfp_sum_2010_2025
+  ) |>
+  pivot_longer(
+    cols = -country,
+    names_to = "component",
+    values_to = "contribution"
+  )
 
 #===================
 
@@ -305,18 +327,35 @@ ggsave(
 # Contributions / Decompositions
 
 #=================================
-# Decomposition 2010-2025
+# Decomposition 2010-2025, Europe
+stacked_plot <- decomp_plot %>%
+  ggplot(aes(
+    x = reorder(country, contribution),
+    y = contribution,
+    fill = component
+  )) +
+  geom_col() +
+  coord_flip() + # Makes country names easier to read
+  scale_fill_brewer(type = "qual", palette = "Set2") +
+  labs(
+    title = "GDP Growth Decomposition, 2010-2025",
+    subtitle = "Cumulative contributions by component",
+    x = "Country",
+    y = "Contribution to GDP Growth (%)",
+    fill = "Component"
+  ) +
+  theme(
+    axis.text.y = element_text(size = 8),
+    legend.position = "bottom",
+    legend.title = element_blank()
+  )
+stacked_plot
 
-dat$contribution_of_labor_quantity_to_real_gdp_growth
-dat$contribution_of_labor_quality_to_real_gdp_growth
-dat$contribution_of_total_capital_services_to_real_gdp_growth
-dat$contribution_of_capital_services_provided_by_ict_assets_to_real_gdp_growth
-dat$contribution_of_capital_services_provided_by_non_ict_assets_to_real_gdp_growth
-
-dat$real_gdp
-
+#=================================
 
 # Productivity growth and Population Growth
+
+#=================================
 
 # 1b: From 2000
 ggplot(df2019, aes(x = gdppc2000, y = g20002019)) +
