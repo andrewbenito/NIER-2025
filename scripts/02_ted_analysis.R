@@ -350,6 +350,13 @@ stacked_plot <- decomp_plot %>%
     legend.title = element_blank()
   )
 stacked_plot
+ggsave(
+  here::here('figures', "stacked_plot.png"),
+  width = 5,
+  height = 4,
+  dpi = 300
+)
+
 
 #=================================
 
