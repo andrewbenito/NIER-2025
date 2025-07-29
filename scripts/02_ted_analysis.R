@@ -115,26 +115,42 @@ decomp_plot <- decomp |>
 
 # Pop growth and Productivity
 #-----------------------------
-dat <- dat |>
-  group_by(country) |>
-  arrange(year) |>
+dat <- dat %>%
+  group_by(country) %>%
+  arrange(year) %>%
   mutate(
-    popg_0025 = ((midyear_population[year == 2025] /
-      midyear_population[year == 2000])^(1 / 25) -
-      1) *
-      100,
+    # Population growth rate 2000-2025 (with error handling)
+    popg_0025 = ifelse(
+      !is.na(midyear_population[year == 2000]) &
+        !is.na(midyear_population[year == 2025]) &
+        midyear_population[year == 2000] > 0,
+      ((midyear_population[year == 2025] /
+        midyear_population[year == 2000])^(1 / 25) -
+        1) *
+        100,
+      NA
+    ),
+
+    # Log differences (annual growth rates)
     dlyh = log(labor_productivity_per_hour_worked) -
       log(lag(labor_productivity_per_hour_worked)),
     dlpop = log(midyear_population) - log(lag(midyear_population)),
+
+    # Log levels
     lyh = log(labor_productivity_per_hour_worked),
-    lyh1990 = lyh[year == 1990]
-  ) |>
-  ungroup() |>
-  group_by(year) |>
+    lyh1990 = ifelse(
+      any(year == 1990, na.rm = TRUE),
+      lyh[year == 1990][1],
+      NA
+    )
+  ) %>%
+  ungroup() %>%
+  group_by(year) %>%
   mutate(
-    dlyhmin = min(dlyh, na.rm = TRUE), # min across all countries
-    dlyhmax = max(dlyh, na.rm = TRUE) # max across all countries
-  ) |>
+    # Handle cases where all values are NA
+    dlyhmin = ifelse(all(is.na(dlyh)), NA, min(dlyh, na.rm = TRUE)),
+    dlyhmax = ifelse(all(is.na(dlyh)), NA, max(dlyh, na.rm = TRUE))
+  ) %>%
   ungroup()
 
 
@@ -417,8 +433,22 @@ ggsave(
 # Regression
 
 #==============
+library(modelsummary)
 
 mod1 <- lm(
   dlyh ~ lyh1990 + dlpop,
   data = dat
+)
+
+broom::tidy(mod1)
+
+modelsummary(
+  mod1,
+  title = "Labor Productivity Growth Regression",
+  coef_rename = c(
+    "lyh1990" = "Log productivity 1990",
+    "dlpop" = "Log population change"
+  ),
+  statistic = c("t = {statistic}", "p = {p.value}"),
+  gof_map = c("nobs", "r.squared", "adj.r.squared")
 )
