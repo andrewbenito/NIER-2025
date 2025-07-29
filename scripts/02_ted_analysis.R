@@ -113,6 +113,31 @@ decomp_plot <- decomp |>
     values_to = "contribution"
   )
 
+# Pop growth and Productivity
+#-----------------------------
+dat <- dat |>
+  group_by(country) |>
+  arrange(year) |>
+  mutate(
+    popg_0025 = ((midyear_population[year == 2025] /
+      midyear_population[year == 2000])^(1 / 25) -
+      1) *
+      100,
+    dlyh = log(labor_productivity_per_hour_worked) -
+      log(lag(labor_productivity_per_hour_worked)),
+    dlpop = log(midyear_population) - log(lag(midyear_population)),
+    lyh = log(labor_productivity_per_hour_worked),
+    lyh1990 = lyh[year == 1990]
+  ) |>
+  ungroup() |>
+  group_by(year) |>
+  mutate(
+    dlyhmin = min(dlyh, na.rm = TRUE), # min across all countries
+    dlyhmax = max(dlyh, na.rm = TRUE) # max across all countries
+  ) |>
+  ungroup()
+
+
 #===================
 
 #  PLOTS
@@ -218,7 +243,7 @@ ggsave(
 # GLOBAL CONVERGENCE
 plot_data <- dat |>
   filter(
-    year == opt.year & grouped_country != 1
+    year == opt.year & grouped_country.x != 1
   )
 # 1: Convergence plot: Global, 2000-2025
 avg_x <- mean(plot_data$labor_productivity_per_hour_worked_2000, na.rm = TRUE)
@@ -338,7 +363,7 @@ stacked_plot <- decomp_plot %>%
   coord_flip() + # Makes country names easier to read
   scale_fill_brewer(type = "qual", palette = "Set2") +
   labs(
-    title = "GDP Growth Decomposition, 2010-2025",
+    title = "GDP Growth Decomposition, Europe 2010-2025",
     subtitle = "Cumulative contributions by component",
     x = "Country",
     y = "Contribution to GDP Growth (%)",
@@ -357,202 +382,43 @@ ggsave(
   dpi = 300
 )
 
-
-#=================================
+#===========================================
 
 # Productivity growth and Population Growth
 
-#=================================
+#============================================
 
-# 1b: From 2000
-ggplot(df2019, aes(x = gdppc2000, y = g20002019)) +
+# PLOT
+plot.labor_productivity_popgrowth <- dat |>
+  filter(Europe.x == 1 & year == 2025) |>
+  ggplot(aes(x = popg_0025, y = labor_productivity_change_2000_2025)) +
   geom_point() +
   geom_smooth(method = lm, se = TRUE) +
-  geom_text_repel(aes(label = ISO), hjust = -0.5) +
-  xlab("GDP per capita, 2000") +
-  ylab("Growth rate, 2000-2019 (annual rate, %)")
-ggsave(here::here('figures', "Fig_1b.png"), width = 5, height = 4, dpi = 300)
-
-# 2. Ribbon Chart, UK and Max and Min within AEs
-ggplot(df3, aes(x = year)) +
-  geom_ribbon(
-    aes(ymin = dlyhMin, ymax = dlyhMax),
-    alpha = 0.2,
-    linetype = 1,
-    fill = "red"
-  ) +
-  geom_line(
-    data = subset(df3, ISO %in% c("GBR")),
-    aes(y = `Output per Hour Worked growth`)
-  ) +
-  geom_hline(yintercept = 0, linetype = "dashed", color = "black") +
-  scale_x_continuous(
-    breaks = seq(
-      min(df3$year, na.rm = TRUE),
-      max(df3$year, na.rm = TRUE) + 1,
-      by = 10
-    )
-  ) +
-  scale_color_jco() +
-  xlab("Year") +
-  ylab("Growth in Output per Hour Worked, %pa") +
+  geom_text_repel(aes(label = country)) +
+  geom_vline(xintercept = 0.0, lty = 4) +
+  geom_hline(yintercept = 0.0, lty = 4) +
   labs(
-    title = "Labour Productivity Growth: UK and Advanced economies",
-    caption = "Source: Conference Board"
-  ) +
-  theme(plot.caption = element_text(hjust = 0))
-ggsave(here::here('figures', "Fig_2.png"), width = 5, height = 4, dpi = 300)
-
-# 3. Population growth and Labour Productivity
-ggplot(
-  byISO,
-  aes(x = `Population growth`, y = `Output per Employed Person growth`)
-) +
-  geom_point() +
-  geom_smooth(method = lm, se = FALSE) +
-  geom_text_repel(aes(label = ISO), hjust = -0.5) +
-  xlab("Population growth (avg annual rate, %)") +
-  ylab("Growth in Output per Person Employed (avg annual rate, %)")
-ggsave(here::here('figures', "Fig_3a.png"), width = 5, height = 4, dpi = 300)
-
-mod1 <- lm(
-  `Output per Employed Person growth` ~ `Population growth`,
-  data = byISO
-)
-summary(mod1)
-
-# Population growth by Sub-period
-ggplot(
-  byISOTime,
-  aes(x = `Population growth`, y = `Output per Employed Person growth`)
-) +
-  geom_point() +
-  geom_smooth(method = lm, se = FALSE) +
-  facet_wrap(~decade) +
-  geom_text_repel(
-    aes(label = ifelse(ISO == "GBR", ISO, '')),
-    hjust = -0.5,
-    max.overlaps = Inf
-  ) +
-  xlab("Population growth (avg annual rate, %)") +
-  ylab("Growth in Output per Person Employed (avg annual rate, %)")
-ggsave(here::here('figures', "Fig_3b.png"), width = 5, height = 4, dpi = 300)
-
-
-# 4. Plot Coefficients ----
-# Population Growth over Time
-byYear %>%
-  unnest(tidied) %>%
-  dplyr::filter(term == 'dPop20y') %>%
-  mutate(
-    conf.low_90 = estimate - 1.645 * std.error,
-    conf.high_90 = estimate + 1.645 * std.error
-  ) %>%
-  ggplot(aes(x = year, y = estimate)) +
-  geom_point(aes(
-    x = year,
-    y = estimate,
-    color = "Estimate with 90% conf. interval"
-  )) +
-  geom_linerange(
-    aes(x = year, ymin = conf.low_90, ymax = conf.high_90),
-    lwd = 1,
-    color = "dodgerblue",
-    show.legend = T
-  ) +
-  geom_hline(yintercept = 0, linetype = "dashed") +
-  labs(
-    title = "Coefficient on Population growth over time",
-    x = "Final year (20-year sample)",
-    y = "Coefficient on Pop growth"
-  ) +
-  theme(legend.title = element_blank(), legend.position = "bottom")
-ggsave(here::here('figures', "Fig_4.png"), width = 5, height = 4, dpi = 300)
-
-# Convergence Estimate over Time
-plot_fig4 <- byYear %>%
-  unnest(tidied) %>%
-  filter(term == "ylinitial") %>%
-  mutate(
-    conf.low_90 = estimate - 1.645 * std.error,
-    conf.high_90 = estimate + 1.645 * std.error
-  ) %>%
-  ggplot(aes(x = year, y = estimate)) +
-  geom_point(color = "black") +
-  geom_linerange(
-    aes(ymin = conf.low_90, ymax = conf.high_90),
-    color = "dodgerblue",
-    linewidth = 1
-  ) +
-  labs(
-    x = "Final year (20-year sample)",
-    y = "Convergence estimate (%pa)",
-    title = NULL
-  ) +
-  theme_minimal() +
-  theme(
-    legend.title = element_blank(),
-    legend.position = "none"
+    title = "Labour productivity growth and Population growth",
+    subtitle = "Europe, 2000-25",
+    x = "Population growth, 2000-25 (avg. %pa)",
+    y = "Labour Productivity Growth (2000-25)"
   )
-plot_fig4
-# Save the plot
+plot.labor_productivity_popgrowth
 ggsave(
-  filename = here::here("figures", "Fig_4.png"),
-  plot = plot_fig4,
+  here::here('figures', "plot.labor_productivity_popgrowth.png"),
   width = 5,
   height = 4,
   dpi = 300
 )
 
 
-# Coefficients on Pop Growth by Country
-byCountry %>%
-  unnest(tidied) %>%
-  dplyr::filter(term == 'dPop20y') %>%
-  mutate(
-    conf.low_90 = estimate - 1.645 * std.error,
-    conf.high_90 = estimate + 1.645 * std.error,
-    ISO = fct_reorder(ISO, estimate)
-  ) %>%
-  ggplot(aes(x = ISO, y = estimate)) +
-  geom_point(aes(
-    x = ISO,
-    y = estimate,
-    color = "Estimate with 90% conf. interval"
-  )) +
-  geom_linerange(
-    aes(x = ISO, ymin = conf.low_90, ymax = conf.high_90),
-    lwd = 1,
-    color = "dodgerblue",
-    show.legend = T
-  ) +
-  geom_hline(yintercept = 0, linetype = "dashed") +
-  xlab("Country") +
-  ylab("Coefficient on Pop growth") +
-  theme(legend.title = element_blank(), legend.position = "bottom")
+#==============
 
-# Coefficients on yInitial by Country
-byCountry %>%
-  unnest(tidied) %>%
-  filter(term == 'ylinitial') %>%
-  mutate(
-    conf.low_90 = estimate - 1.645 * std.error,
-    conf.high_90 = estimate + 1.645 * std.error,
-    ISO = fct_reorder(ISO, estimate)
-  ) %>%
-  ggplot(aes(x = ISO, y = estimate)) +
-  geom_point(aes(
-    x = ISO,
-    y = estimate,
-    color = "Estimate with 90% conf. interval"
-  )) +
-  geom_linerange(
-    aes(x = ISO, ymin = conf.low_90, ymax = conf.high_90),
-    lwd = 1,
-    color = "dodgerblue",
-    show.legend = T
-  ) +
-  geom_hline(yintercept = 0, linetype = "dashed") +
-  xlab("Country") +
-  ylab("Coefficient on Initial Productivity") +
-  theme(legend.title = element_blank(), legend.position = "bottom")
+# Regression
+
+#==============
+
+mod1 <- lm(
+  dlyh ~ lyh1990 + dlpop,
+  data = dat
+)
