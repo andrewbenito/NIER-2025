@@ -147,6 +147,10 @@ dat <- dat %>%
   ungroup() %>%
   group_by(year) %>%
   mutate(
+    pop_avg_growth_20yr = ((midyear_population /
+      lag(midyear_population, n = 20))^(1 / 20) -
+      1) *
+      100,
     # Handle cases where all values are NA
     dlyhmin = ifelse(all(is.na(dlyh)), NA, min(dlyh, na.rm = TRUE)),
     dlyhmax = ifelse(all(is.na(dlyh)), NA, max(dlyh, na.rm = TRUE))
@@ -434,6 +438,8 @@ ggsave(
 
 #==============
 library(modelsummary)
+
+# replace with 20y pop change
 
 mod1 <- lm(
   dlyh ~ lyh1990 + dlpop,
